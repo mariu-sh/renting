@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class FlatconfigApplication
+class FlatConfigApplication
 
 fun main(args: Array<String>) {
-	runApplication<FlatconfigApplication>(*args)
+	runApplication<FlatConfigApplication>(*args)
 }
