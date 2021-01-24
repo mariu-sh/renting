@@ -3,9 +3,8 @@ package com.mariuszf.flatconfig.application.service
 import java.util.*
 
 class Flat(val id: UUID, val totalSurface: Double) {
-    val rooms: MutableList<Room> = emptyList<Room>() as MutableList<Room>
+    val rooms: List<Room> = emptyList()
     var commonPartSurface = totalSurface
-
 
     private fun updateCommonPartSurface(){
         commonPartSurface = totalSurface - sumRoomsSurface()

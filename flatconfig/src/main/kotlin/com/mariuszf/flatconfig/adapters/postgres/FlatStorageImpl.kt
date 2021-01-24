@@ -2,48 +2,46 @@ package com.mariuszf.flatconfig.adapters.postgres
 
 import com.mariuszf.flatconfig.application.port.out.FlatStorage
 import com.mariuszf.flatconfig.application.service.Flat
-import org.springframework.data.repository.CrudRepository
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import java.util.*
 import javax.persistence.*
 
-@Repository
-interface FlatStorageImpl: FlatStorage, CrudRepository<FlatEntity, UUID> {
+@Component
+class FlatStorageImpl(
+    val postgresFlatStorage: PostgresFlatStorage
+) : FlatStorage {
 
-    override fun findFlatById(flatId: UUID): Flat {
-        val flatEntity = findById(flatId)
-        return Optional.of(flatEntity)
-                .map { it.get().toDomain() }
-                .orElseThrow{ Exception() }
-    }
-
-    override fun createFlat(totalSurface: Double): Flat {
-        val flatEntity = FlatEntity()
-        flatEntity.totalSurface = totalSurface
-        return save(flatEntity).toDomain()
-    }
+    override fun createFlat(totalSurface: Double): Flat =
+        postgresFlatStorage.save(FlatEntity(UUID.randomUUID(), totalSurface)).toDomain()
 
     override fun updateFlat(flatId: UUID, totalSurface: Double): Flat {
-        val flatEntity = findById(flatId).get()
+        val flatEntity = postgresFlatStorage.findById(flatId).get()
         flatEntity.totalSurface = totalSurface
-        return save(flatEntity).toDomain()
+        return postgresFlatStorage.save(flatEntity).toDomain()
     }
 
-    override fun deleteFlatById(flatId: UUID) = deleteById(flatId)
+    override fun findFlatById(flatId: UUID): Flat = postgresFlatStorage.findById(flatId)
+        .map { it.toDomain() }
+        .orElseThrow { Exception() }
+
+    override fun findAllFlats(): List<Flat> = postgresFlatStorage.findAll().map { it.toDomain() }
+
+    override fun deleteFlatById(flatId: UUID) = postgresFlatStorage.deleteById(flatId)
 }
+
+@Repository
+interface PostgresFlatStorage : JpaRepository<FlatEntity, UUID>
 
 @Suppress("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "flat")
-class FlatEntity{
+data class FlatEntity(
+    @Id @Column(name = "flat_id") val id: UUID?,
+    @Column(name = "total_surface") var totalSurface: Double
+) {
+    constructor() : this(null, 0.0)
 
-    @Id
-    @GeneratedValue
-    @Column(name = "flat_id")
-    lateinit var flatId: UUID
-
-    @Column(name = "total_surface", nullable = false)
-    var totalSurface: Double = 0.0
-
-    fun toDomain(): Flat = Flat(flatId, totalSurface)
+    fun toDomain(): Flat = Flat(id!!, totalSurface)
 }

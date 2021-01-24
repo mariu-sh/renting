@@ -19,6 +19,8 @@ class FlatConfigService(
 
     override fun getFlat(flatId: UUID): Flat = flatStorage.findFlatById(flatId)
 
+    override fun getAllFlats(): List<Flat> = flatStorage.findAllFlats()
+
     @Transactional
     override fun deleteFlat(flatId: UUID){
         roomStorage.findRoomsForFlatById(flatId).forEach { roomStorage.deleteRoom(it.id) }
@@ -28,6 +30,8 @@ class FlatConfigService(
     override fun createRoom(surface: Double, flatId: UUID): Room = roomStorage.createRoom(surface, flatId)
 
     override fun getRoom(roomId: UUID): Room = roomStorage.findRoomById(roomId)
+
+    override fun getAllRooms(): List<Room> = roomStorage.findAllRooms()
 
     override fun updateRoom(roomId: UUID, surface: Double): Room = roomStorage.updateRoom(roomId, surface)
 
