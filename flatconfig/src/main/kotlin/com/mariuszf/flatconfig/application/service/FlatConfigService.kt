@@ -70,7 +70,7 @@ class FlatConfigService(val flatStorage: FlatStorage, val roomStorage: RoomStora
             throw RoomNotFoundInStorageException(e.message)
         }
 
-    private fun Flat.updateProperties(): Flat = run {
+    private fun Flat.updateProperties(): Flat {
         rooms = getRoomsForFlat(id)
         updateCommonPartSurface()
         return this
