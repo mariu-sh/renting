@@ -8,21 +8,25 @@ import java.util.*
 import javax.transaction.Transactional
 
 @Service
-class FlatConfigService(
-        val flatStorage: FlatStorage,
-        val roomStorage: RoomStorage
-) : ConfigureFlatUseCase {
+class FlatConfigService(val flatStorage: FlatStorage, val roomStorage: RoomStorage) : ConfigureFlatUseCase {
 
     override fun createFlat(totalSurface: Double): Flat = flatStorage.createFlat(totalSurface)
 
-    override fun updateFlat(flatId: UUID, totalSurface: Double): Flat = flatStorage.updateFlat(flatId, totalSurface)
+    override fun updateFlat(flatId: UUID, totalSurface: Double): Flat =
+        flatStorage.updateFlat(flatId, totalSurface).updateFlatProperties()
 
-    override fun getFlat(flatId: UUID): Flat = flatStorage.findFlatById(flatId)
+    override fun getFlat(flatId: UUID): Flat = flatStorage.findFlatById(flatId).updateFlatProperties()
 
-    override fun getAllFlats(): List<Flat> = flatStorage.findAllFlats()
+    override fun getAllFlats(): List<Flat> = flatStorage.findAllFlats().map { it.updateFlatProperties() }
+
+    private fun Flat.updateFlatProperties(): Flat = run {
+        rooms = getRoomsForFlat(id)
+        updateCommonPartSurface()
+        return this
+    }
 
     @Transactional
-    override fun deleteFlat(flatId: UUID){
+    override fun deleteFlat(flatId: UUID) {
         roomStorage.findRoomsForFlatById(flatId).forEach { roomStorage.deleteRoom(it.id) }
         flatStorage.deleteFlatById(flatId)
     }
@@ -33,8 +37,9 @@ class FlatConfigService(
 
     override fun getAllRooms(): List<Room> = roomStorage.findAllRooms()
 
+    private fun getRoomsForFlat(flatId: UUID): List<Room> = roomStorage.findRoomsForFlatById(flatId)
+
     override fun updateRoom(roomId: UUID, surface: Double): Room = roomStorage.updateRoom(roomId, surface)
 
     override fun deleteRoom(roomId: UUID) = roomStorage.deleteRoom(roomId)
-
 }

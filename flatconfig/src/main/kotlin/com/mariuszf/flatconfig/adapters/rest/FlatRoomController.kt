@@ -48,16 +48,25 @@ class FlatRoomController(val configureFlatUseCase: ConfigureFlatUseCase) {
     @DeleteMapping("/room")
     fun deleteRoom(@RequestBody roomDeleteDTO: RoomDeleteDTO) = configureFlatUseCase.deleteRoom(roomDeleteDTO.id)
 
-    data class FlatDTO(@NotNull val flatId: UUID, @NotNull val totalSurface: Double, @NotNull val rooms: List<RoomSimpleDTO>) {
+    data class FlatDTO(
+        @NotNull val flatId: UUID,
+        @NotNull val totalSurface: Double,
+        @NotNull val commonPartSurface: Double,
+        @NotNull val rooms: List<RoomSimpleDTO>
+    ) {
         companion object {
             @JvmStatic
             fun fromDomain(flat: Flat): FlatDTO =
-                FlatDTO(flat.id, flat.totalSurface, flat.rooms.map { RoomSimpleDTO.fromDomain(it) })
+                FlatDTO(
+                    flat.id,
+                    flat.totalSurface,
+                    flat.commonPartSurface,
+                    flat.rooms.map { RoomSimpleDTO.fromDomain(it) }
+                )
         }
     }
 
-    data class FlatCreateDTO(val totalSurface: Double){
-    }
+    data class FlatCreateDTO(val totalSurface: Double)
     data class FlatUpdateDTO(val id: UUID, val totalSurface: Double)
     data class FlatDeleteDTO(val id: UUID)
 
