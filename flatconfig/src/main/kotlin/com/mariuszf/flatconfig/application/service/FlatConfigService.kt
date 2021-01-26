@@ -3,6 +3,7 @@ package com.mariuszf.flatconfig.application.service
 import com.mariuszf.flatconfig.adapters.postgres.FlatNotFoundInStorageException
 import com.mariuszf.flatconfig.adapters.postgres.RoomNotFoundInStorageException
 import com.mariuszf.flatconfig.application.exceptions.FlatNotFoundException
+import com.mariuszf.flatconfig.application.exceptions.SurfaceIsInvalidException
 import com.mariuszf.flatconfig.application.port.`in`.ConfigureFlatUseCase
 import com.mariuszf.flatconfig.application.port.out.FlatStorage
 import com.mariuszf.flatconfig.application.port.out.RoomStorage

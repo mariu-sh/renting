@@ -8,3 +8,6 @@ class FlatNotFoundRestException(override val message: String?): RuntimeException
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 class RoomNotFoundRestException(override val message: String?): RuntimeException(message)
+
+@ResponseStatus(HttpStatus.CONFLICT)
+class SurfaceIsInvalidRestException(override val message: String?): RuntimeException(message)

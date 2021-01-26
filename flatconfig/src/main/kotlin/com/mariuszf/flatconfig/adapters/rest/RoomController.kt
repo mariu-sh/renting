@@ -1,6 +1,7 @@
 package com.mariuszf.flatconfig.adapters.rest
 
 import com.mariuszf.flatconfig.application.exceptions.RoomNotFoundException
+import com.mariuszf.flatconfig.application.exceptions.SurfaceIsInvalidException
 import com.mariuszf.flatconfig.application.port.`in`.ConfigureFlatUseCase
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -22,7 +23,11 @@ class RoomController(val configureFlatUseCase: ConfigureFlatUseCase) {
 
     @PostMapping
     fun createRoom(@RequestBody roomCreateDTO: RoomCreateDTO): RoomDTO =
-        RoomDTO.fromDomain(configureFlatUseCase.createRoom(roomCreateDTO.surface, roomCreateDTO.flatId))
+        try {
+            RoomDTO.fromDomain(configureFlatUseCase.createRoom(roomCreateDTO.surface, roomCreateDTO.flatId))
+        } catch (e: SurfaceIsInvalidException) {
+            throw SurfaceIsInvalidRestException(e.message)
+        }
 
     @PutMapping
     fun updateRoom(@RequestBody roomUpdateDTO: RoomUpdateDTO): RoomDTO =
@@ -30,6 +35,8 @@ class RoomController(val configureFlatUseCase: ConfigureFlatUseCase) {
             RoomDTO.fromDomain(configureFlatUseCase.updateRoom(roomUpdateDTO.roomId, roomUpdateDTO.surface))
         } catch (e: RoomNotFoundException) {
             throw RoomNotFoundRestException(e.message)
+        } catch (e: SurfaceIsInvalidException) {
+            throw SurfaceIsInvalidRestException(e.message)
         }
 
     @DeleteMapping

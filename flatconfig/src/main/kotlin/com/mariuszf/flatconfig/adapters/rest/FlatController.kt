@@ -1,6 +1,7 @@
 package com.mariuszf.flatconfig.adapters.rest
 
 import com.mariuszf.flatconfig.application.exceptions.FlatNotFoundException
+import com.mariuszf.flatconfig.application.exceptions.SurfaceIsInvalidException
 import com.mariuszf.flatconfig.application.port.`in`.ConfigureFlatUseCase
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -26,7 +27,11 @@ class FlatController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createFlat(@RequestBody flatCreateDTO: FlatCreateDTO): FlatDTO =
-        FlatDTO.fromDomain(configureFlatUseCase.createFlat(flatCreateDTO.totalSurface))
+        try {
+            FlatDTO.fromDomain(configureFlatUseCase.createFlat(flatCreateDTO.totalSurface))
+        } catch (e: SurfaceIsInvalidException) {
+            throw SurfaceIsInvalidRestException(e.message)
+        }
 
     @PutMapping
     fun updateFlat(@RequestBody flatUpdateDTO: FlatUpdateDTO): FlatDTO =
@@ -34,6 +39,8 @@ class FlatController(
             FlatDTO.fromDomain(configureFlatUseCase.updateFlat(flatUpdateDTO.flatId, flatUpdateDTO.totalSurface))
         } catch (e: FlatNotFoundException) {
             throw FlatNotFoundRestException(e.message)
+        } catch (e: SurfaceIsInvalidException) {
+            throw SurfaceIsInvalidRestException(e.message)
         }
 
     @DeleteMapping
