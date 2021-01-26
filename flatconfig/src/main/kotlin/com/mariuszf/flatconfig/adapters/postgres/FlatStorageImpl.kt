@@ -11,21 +11,20 @@ import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Id
 import javax.persistence.Table
+import javax.transaction.Transactional
 
 @Component
 class FlatStorageImpl(val postgresFlatStorage: PostgresFlatStorage) : FlatStorage {
 
+    @Transactional
     override fun createFlat(totalSurface: Double): Flat =
         postgresFlatStorage.save(FlatEntity(UUID.randomUUID(), totalSurface)).toDomain()
 
-    override fun updateFlat(flatId: UUID, totalSurface: Double): Flat =
-        try {
-            val flatEntity = postgresFlatStorage.findById(flatId).get()
-            flatEntity.totalSurface = totalSurface
-            postgresFlatStorage.save(flatEntity).toDomain()
-        } catch (_: EmptyResultDataAccessException) {
-            throw  FlatNotFoundInStorageException("Flat with id $flatId not found")
-        }
+    override fun updateFlat(flatId: UUID, totalSurface: Double): Flat {
+        val flatEntity = postgresFlatStorage.findById(flatId).get()
+        flatEntity.totalSurface = totalSurface
+        return postgresFlatStorage.save(flatEntity).toDomain()
+    }
 
     override fun findFlatById(flatId: UUID): Flat =
         postgresFlatStorage.findById(flatId).map { it.toDomain() }

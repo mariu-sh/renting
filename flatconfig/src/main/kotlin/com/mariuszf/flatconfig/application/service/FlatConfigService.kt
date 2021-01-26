@@ -3,7 +3,7 @@ package com.mariuszf.flatconfig.application.service
 import com.mariuszf.flatconfig.adapters.postgres.FlatNotFoundInStorageException
 import com.mariuszf.flatconfig.adapters.postgres.RoomNotFoundInStorageException
 import com.mariuszf.flatconfig.application.exceptions.FlatNotFoundException
-import com.mariuszf.flatconfig.application.exceptions.SurfaceIsInvalidException
+import com.mariuszf.flatconfig.application.exceptions.RoomNotFoundException
 import com.mariuszf.flatconfig.application.port.`in`.ConfigureFlatUseCase
 import com.mariuszf.flatconfig.application.port.out.FlatStorage
 import com.mariuszf.flatconfig.application.port.out.RoomStorage
@@ -43,13 +43,13 @@ class FlatConfigService(val flatStorage: FlatStorage, val roomStorage: RoomStora
 
     @Transactional
     override fun createRoom(surface: Double, flatId: UUID): Room  =
-        roomStorage.createRoom(surface, flatId).validateFlatState()
+        roomStorage.createRoom(surface, getFlat(flatId).id).validateFlatState()
 
     override fun getRoom(roomId: UUID): Room =
         try {
             roomStorage.findRoomById(roomId)
         } catch (e: RoomNotFoundInStorageException) {
-            throw RoomNotFoundInStorageException(e.message)
+            throw RoomNotFoundException(e.message)
         }
 
     override fun getAllRooms(): List<Room> = roomStorage.findAllRooms()
@@ -61,14 +61,14 @@ class FlatConfigService(val flatStorage: FlatStorage, val roomStorage: RoomStora
         try {
             roomStorage.updateRoom(roomId, surface).validateFlatState()
         } catch (e: RoomNotFoundInStorageException) {
-            throw RoomNotFoundInStorageException(e.message)
+            throw RoomNotFoundException(e.message)
         }
 
     override fun deleteRoom(roomId: UUID) =
         try {
-            roomStorage.deleteRoom(roomId)
+            roomStorage.deleteRoom(getRoom(roomId).id)
         } catch (e: RoomNotFoundInStorageException) {
-            throw RoomNotFoundInStorageException(e.message)
+            throw RoomNotFoundException(e.message)
         }
 
     private fun Flat.updateProperties(): Flat {
