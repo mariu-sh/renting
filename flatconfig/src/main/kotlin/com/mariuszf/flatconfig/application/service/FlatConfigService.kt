@@ -1,5 +1,9 @@
 package com.mariuszf.flatconfig.application.service
 
+import com.mariuszf.flatconfig.adapters.postgres.FlatNotFoundInStorageException
+import com.mariuszf.flatconfig.adapters.postgres.RoomNotFoundInStorageException
+import com.mariuszf.flatconfig.application.exceptions.FlatNotFoundException
+import com.mariuszf.flatconfig.application.exceptions.RoomNotFoundException
 import com.mariuszf.flatconfig.application.port.`in`.ConfigureFlatUseCase
 import com.mariuszf.flatconfig.application.port.out.FlatStorage
 import com.mariuszf.flatconfig.application.port.out.RoomStorage
@@ -8,33 +12,73 @@ import java.util.*
 import javax.transaction.Transactional
 
 @Service
-class FlatConfigService(
-        val flatStorage: FlatStorage,
-        val roomStorage: RoomStorage
-) : ConfigureFlatUseCase {
+class FlatConfigService(val flatStorage: FlatStorage, val roomStorage: RoomStorage) : ConfigureFlatUseCase {
 
     override fun createFlat(totalSurface: Double): Flat = flatStorage.createFlat(totalSurface)
 
-    override fun updateFlat(flatId: UUID, totalSurface: Double): Flat = flatStorage.updateFlat(flatId, totalSurface)
+    override fun updateFlat(flatId: UUID, totalSurface: Double): Flat =
+        try {
+            flatStorage.updateFlat(flatId, totalSurface).updateProperties().validateState()
+        } catch (e: FlatNotFoundInStorageException) {
+            throw FlatNotFoundException(e.message)
+        }
 
-    override fun getFlat(flatId: UUID): Flat = flatStorage.findFlatById(flatId)
+    override fun getFlat(flatId: UUID): Flat =
+        try {
+            flatStorage.findFlatById(flatId).updateProperties()
+        } catch (e: FlatNotFoundInStorageException) {
+            throw FlatNotFoundException(e.message)
+        }
 
-    override fun getAllFlats(): List<Flat> = flatStorage.findAllFlats()
+    override fun getAllFlats(): List<Flat> = flatStorage.findAllFlats().map { it.updateProperties() }
 
     @Transactional
-    override fun deleteFlat(flatId: UUID){
-        roomStorage.findRoomsForFlatById(flatId).forEach { roomStorage.deleteRoom(it.id) }
-        flatStorage.deleteFlatById(flatId)
-    }
+    override fun deleteFlat(flatId: UUID) =
+        try {
+            roomStorage.findRoomsForFlatById(flatId).forEach { roomStorage.deleteRoom(it.id) }
+            flatStorage.deleteFlatById(flatId)
+        } catch (e: FlatNotFoundInStorageException) {
+            throw FlatNotFoundException(e.message)
+        }
 
-    override fun createRoom(surface: Double, flatId: UUID): Room = roomStorage.createRoom(surface, flatId)
+    @Transactional
+    override fun createRoom(surface: Double, flatId: UUID): Room  =
+        roomStorage.createRoom(surface, getFlat(flatId).id).validateFlatState()
 
-    override fun getRoom(roomId: UUID): Room = roomStorage.findRoomById(roomId)
+    override fun getRoom(roomId: UUID): Room =
+        try {
+            roomStorage.findRoomById(roomId)
+        } catch (e: RoomNotFoundInStorageException) {
+            throw RoomNotFoundException(e.message)
+        }
 
     override fun getAllRooms(): List<Room> = roomStorage.findAllRooms()
 
-    override fun updateRoom(roomId: UUID, surface: Double): Room = roomStorage.updateRoom(roomId, surface)
+    private fun getRoomsForFlat(flatId: UUID): List<Room> = roomStorage.findRoomsForFlatById(flatId)
 
-    override fun deleteRoom(roomId: UUID) = roomStorage.deleteRoom(roomId)
+    @Transactional
+    override fun updateRoom(roomId: UUID, surface: Double): Room =
+        try {
+            roomStorage.updateRoom(roomId, surface).validateFlatState()
+        } catch (e: RoomNotFoundInStorageException) {
+            throw RoomNotFoundException(e.message)
+        }
 
+    override fun deleteRoom(roomId: UUID) =
+        try {
+            roomStorage.deleteRoom(getRoom(roomId).id)
+        } catch (e: RoomNotFoundInStorageException) {
+            throw RoomNotFoundException(e.message)
+        }
+
+    private fun Flat.updateProperties(): Flat {
+        rooms = getRoomsForFlat(id)
+        updateCommonPartSurface()
+        return this
+    }
+
+    private fun Room.validateFlatState(): Room {
+        flatStorage.findFlatById(flatId).updateProperties().validateState()
+        return this
+    }
 }
