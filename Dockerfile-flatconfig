@@ -1,0 +1,14 @@
+FROM openjdk:11-jdk AS flatconfig-build
+COPY ./flatconfig /home/flatconfig
+WORKDIR /home/flatconfig
+RUN ./gradlew clean build --no-daemon
+
+FROM openjdk:11-jre-slim
+
+RUN mkdir /app
+
+EXPOSE $flatConfigPort
+
+COPY --from=flatconfig-build /home/flatconfig/build/libs/*.jar /app/flatconfig.jar
+
+ENTRYPOINT ["java", "-jar", "/app/flatconfig.jar"]

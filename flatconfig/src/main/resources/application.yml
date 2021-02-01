@@ -1,8 +1,14 @@
 server:
-  port: 8081
+  port: ${FLAT_CONFIG_PORT:8081}
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/pgdb
-    username: pguser
-    password: pgpass
+    url: jdbc:postgresql://${FLAT_CONFIG_DB_IP:localhost}:${FLAT_CONFIG_DB_PORT:5432}/${FLAT_CONFIG_DB_NAME:pgdb}
+    username: ${FLAT_CONFIG_DB_USERNAME:pguser}
+    password: ${FLAT_CONFIG_DB_PASSWORD:pgpass}
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#    hibernate:
+#      ddl-auto: validate
