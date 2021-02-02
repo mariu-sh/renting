@@ -1,0 +1,8 @@
+server:
+  port: ${COST_SERVICE_PORT:8082}
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${COST_SERVICE_DB_IP:localhost}:${COST_SERVICE_DB_PORT:5432}/${COST_SERVICE_DB_NAME:pgdb}
+    username: ${COST_SERVICE_DB_USERNAME:pguser}
+    password: ${COST_SERVICE_DB_PASSWORD:pgpass}

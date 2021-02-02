@@ -1,0 +1,13 @@
+version: "3.3"
+services:
+  costservice_db:
+    env_file:
+      - .env
+    image: postgres
+    command: -p ${COST_SERVICE_DB_PORT:-5342}
+    ports:
+      - ${COST_SERVICE_DB_PORT:-5342}:${COST_SERVICE_DB_PORT:-5342}
+    environment:
+      POSTGRES_USER: "${COST_SERVICE_DB_NAME:-pguser}"
+      POSTGRES_PASSWORD: "${COST_SERVICE_DB_PASSWORD:-pgpass}"
+      POSTGRES_DB: "${COST_SERVICE_DB_NAME:-pgdb}"

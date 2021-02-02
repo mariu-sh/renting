@@ -1,10 +1,10 @@
-package com.mariuszf.flatconfig
+package com.mariuszf.costservice
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class FlatConfigApplicationTests {
+class CostServiceApplicationTests {
 
 	@Test
 	fun contextLoads() {

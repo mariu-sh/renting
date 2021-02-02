@@ -1,0 +1,12 @@
+FROM openjdk:11-jdk AS costservice-build
+COPY ./costservice /home/costservice
+WORKDIR /home/costservice
+RUN ./gradlew clean build --no-daemon
+
+FROM openjdk:11-jre-slim
+
+RUN mkdir /app
+
+COPY --from=costservice-build /home/gradle/src/build/libs/*.jar /app/costservice.jar
+
+ENTRYPOINT ["java", "-jar", "/app/costservice.jar"]
