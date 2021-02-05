@@ -5,68 +5,77 @@ import com.mariuszf.flatconfig.adapters.postgres.RoomNotFoundInStorageException
 import com.mariuszf.flatconfig.application.exceptions.FlatNotFoundException
 import com.mariuszf.flatconfig.application.exceptions.RoomNotFoundException
 import com.mariuszf.flatconfig.application.port.`in`.ConfigureFlatUseCase
+import com.mariuszf.flatconfig.application.port.out.FlatConfigInfoSync
 import com.mariuszf.flatconfig.application.port.out.FlatStorage
 import com.mariuszf.flatconfig.application.port.out.RoomStorage
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import javax.transaction.Transactional
 
 @Service
-class FlatConfigService(val flatStorage: FlatStorage, val roomStorage: RoomStorage) : ConfigureFlatUseCase {
+class FlatConfigService(
+    val flatStorage: FlatStorage,
+    val roomStorage: RoomStorage,
+    val flatConfigInfoSync: FlatConfigInfoSync
+) : ConfigureFlatUseCase {
 
-    override fun createFlat(totalSurface: Double): Flat = flatStorage.createFlat(totalSurface)
+    override fun createFlat(totalSurface: Double): Flat {
+        val flat: Flat = flatStorage.createFlat(totalSurface)
+        flatConfigInfoSync.sendCreateCommand(flat)
+        return flat
+    }
 
-    override fun updateFlat(flatId: UUID, totalSurface: Double): Flat =
+    @Transactional
+    override fun updateFlat(flatId: UUID, totalSurface: Double): Flat {
         try {
-            flatStorage.updateFlat(flatId, totalSurface).updateProperties().validateState()
-        } catch (e: FlatNotFoundInStorageException) {
-            throw FlatNotFoundException(e.message)
-        }
+            val flat = flatStorage.updateFlat(flatId, totalSurface).updateProperties().validateState()
+            flatConfigInfoSync.sendUpdateCommand(flat)
+            return flat
+        } catch (e: FlatNotFoundInStorageException) { throw FlatNotFoundException(e.message) }
+    }
 
     override fun getFlat(flatId: UUID): Flat =
-        try {
-            flatStorage.findFlatById(flatId).updateProperties()
-        } catch (e: FlatNotFoundInStorageException) {
-            throw FlatNotFoundException(e.message)
-        }
+        try { flatStorage.findFlatById(flatId).updateProperties() }
+        catch (e: FlatNotFoundInStorageException) { throw FlatNotFoundException(e.message) }
 
     override fun getAllFlats(): List<Flat> = flatStorage.findAllFlats().map { it.updateProperties() }
 
     @Transactional
     override fun deleteFlat(flatId: UUID) =
         try {
-            roomStorage.findRoomsForFlatById(flatId).forEach { roomStorage.deleteRoom(it.id) }
+            roomStorage.findRoomsForFlatById(flatId).forEach { deleteRoom(it.id) }
             flatStorage.deleteFlatById(flatId)
-        } catch (e: FlatNotFoundInStorageException) {
-            throw FlatNotFoundException(e.message)
-        }
+            flatConfigInfoSync.sendDeleteCommand(flatId)
+        } catch (e: FlatNotFoundInStorageException) { throw FlatNotFoundException(e.message) }
 
     @Transactional
-    override fun createRoom(surface: Double, flatId: UUID): Room  =
-        roomStorage.createRoom(surface, getFlat(flatId).id).validateFlatState()
+    override fun createRoom(surface: Double, flatId: UUID): Room {
+        val room = roomStorage.createRoom(surface, getFlat(flatId).id).validateFlatState()
+        flatConfigInfoSync.sendCreateCommand(room)
+        return room
+    }
 
     override fun getRoom(roomId: UUID): Room =
-        try {
-            roomStorage.findRoomById(roomId)
-        } catch (e: RoomNotFoundInStorageException) {
-            throw RoomNotFoundException(e.message)
-        }
+        try { roomStorage.findRoomById(roomId) }
+        catch (e: RoomNotFoundInStorageException) { throw RoomNotFoundException(e.message) }
 
     override fun getAllRooms(): List<Room> = roomStorage.findAllRooms()
 
     private fun getRoomsForFlat(flatId: UUID): List<Room> = roomStorage.findRoomsForFlatById(flatId)
 
     @Transactional
-    override fun updateRoom(roomId: UUID, surface: Double): Room =
+    override fun updateRoom(roomId: UUID, surface: Double): Room {
         try {
-            roomStorage.updateRoom(roomId, surface).validateFlatState()
-        } catch (e: RoomNotFoundInStorageException) {
-            throw RoomNotFoundException(e.message)
-        }
+            val room = roomStorage.updateRoom(roomId, surface).validateFlatState()
+            flatConfigInfoSync.sendUpdateCommand(room)
+            return room
+        } catch (e: RoomNotFoundInStorageException) { throw RoomNotFoundException(e.message) }
+    }
 
     override fun deleteRoom(roomId: UUID) =
         try {
             roomStorage.deleteRoom(getRoom(roomId).id)
+            flatConfigInfoSync.sendDeleteCommand(roomId)
         } catch (e: RoomNotFoundInStorageException) {
             throw RoomNotFoundException(e.message)
         }

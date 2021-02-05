@@ -6,9 +6,13 @@ spring:
     url: jdbc:postgresql://${FLAT_CONFIG_DB_IP:localhost}:${FLAT_CONFIG_DB_PORT:5432}/${FLAT_CONFIG_DB_NAME:pgdb}
     username: ${FLAT_CONFIG_DB_USERNAME:pguser}
     password: ${FLAT_CONFIG_DB_PASSWORD:pgpass}
-#  jpa:
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.PostgreSQLDialect
-#    hibernate:
-#      ddl-auto: validate
+  cloud.stream:
+    function.definition: flatConfigInfoSync
+    bindings:
+      flatConfigInfo-out-0:
+        destination: flat-sync
+        producer:
+          useNativeEncoding: true
+    bindings.taskCommand-out-0.producer.configuration:
+      value.serializer: org.apache.kafka.common.serialization.StringSerializer
+#      schema.registry.url: http://${CONFLUENT_SCHEMA_KSQL_CP_SCHEMA_REGISTRY_SERVICE_HOST:localhost}:${CONFLUENT_SCHEMA_KSQL_CP_SCHEMA_REGISTRY_SERVICE_PORT:8086}

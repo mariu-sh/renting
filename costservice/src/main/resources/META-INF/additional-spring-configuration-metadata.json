@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "flatconfig.url",
+      "type": "java.lang.String",
+      "description": "Description for flatconfig.url."
+    },
+    {
+      "name": "flatconfig.port",
+      "type": "java.lang.String",
+      "description": "Description for flatconfig.port."
+    }
+  ] }

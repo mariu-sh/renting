@@ -6,3 +6,6 @@ spring:
     url: jdbc:postgresql://${COST_SERVICE_DB_IP:localhost}:${COST_SERVICE_DB_PORT:5432}/${COST_SERVICE_DB_NAME:pgdb}
     username: ${COST_SERVICE_DB_USERNAME:pguser}
     password: ${COST_SERVICE_DB_PASSWORD:pgpass}
+flatconfig:
+  url: ${FLAT_CONFIG_IP:localhost}
+  port: ${FLAT_CONFIG_PORT:8081}
