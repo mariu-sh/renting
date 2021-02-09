@@ -4,7 +4,6 @@ import com.mariuszf.flatconfig.adapters.postgres.RoomNotFoundInStorageException
 import com.mariuszf.flatconfig.application.port.out.RoomStorage
 import java.util.*
 import java.util.UUID.randomUUID
-import kotlin.streams.toList
 
 class InMemoryRoomStorage : RoomStorage{
 
@@ -33,6 +32,5 @@ class InMemoryRoomStorage : RoomStorage{
         storage.removeIf { it.id == roomId }
     }
 
-    override fun findRoomsForFlatById(flatId: UUID): List<Room> =
-        storage.stream().filter { it.flatId == flatId }.toList()
+    override fun findRoomsForFlatById(flatId: UUID): List<Room> = storage.filter { it.flatId == flatId }
 }

@@ -11,23 +11,27 @@ class FlatConfigInfoSyncImpl(private val streamBridge: StreamBridge) : FlatConfi
     private val topicBinderName = "flatConfigInfo-out-0"
 
     override fun sendCreateCommand(flat: Flat) {
-        streamBridge.send(topicBinderName, MessagingDTO.fromDomain(flat, MessageType.CREATE))
+        send(MessagingDTO.fromDomain(flat, MessageType.CREATE))
     }
 
     override fun sendCreateCommand(room: Room) {
-        streamBridge.send(topicBinderName, MessagingDTO.fromDomain(room, MessageType.CREATE))
+        send(MessagingDTO.fromDomain(room, MessageType.CREATE))
     }
 
     override fun sendUpdateCommand(flat: Flat) {
-        streamBridge.send(topicBinderName, MessagingDTO.fromDomain(flat, MessageType.UPDATE))
+        send(MessagingDTO.fromDomain(flat, MessageType.UPDATE))
     }
 
     override fun sendUpdateCommand(room: Room) {
-        streamBridge.send(topicBinderName, MessagingDTO.fromDomain(room, MessageType.UPDATE))
+        send(MessagingDTO.fromDomain(room, MessageType.UPDATE))
     }
 
     override fun sendDeleteCommand(nodeId: UUID) {
-        streamBridge.send(topicBinderName, MessagingDTO(nodeId, messageType = MessageType.DELETE))
+        send(MessagingDTO(nodeId, messageType = MessageType.DELETE))
+    }
+
+    private fun send(messagingDTO: MessagingDTO) {
+        streamBridge.send(topicBinderName, messagingDTO)
     }
 
     data class MessagingDTO(

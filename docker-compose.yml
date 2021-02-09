@@ -1,24 +1,24 @@
 version: "3.3"
 services:
 
-  flatconfig-service:
-    env_file:
-      - .env
-    build:
-      args:
-        flatConfigPort: ${FLAT_CONFIG_PORT:-8081}
-      context: .
-      dockerfile: Dockerfile-flatconfig
-    image: flatconfig-service-image
-    expose:
-      - ${FLAT_CONFIG_PORT:-8081}
-    ports:
-      - ${FLAT_CONFIG_PORT:-8081}:${FLAT_CONFIG_PORT:-8081}
-    depends_on:
-      - flatconfig-db
-    networks:
-      backend-network:
-        ipv4_address: ${FLAT_CONFIG_IP}
+#  flatconfig-service:
+#    env_file:
+#      - .env
+#    build:
+#      args:
+#        flatConfigPort: ${FLAT_CONFIG_PORT:-8081}
+#      context: .
+#      dockerfile: Dockerfile-flatconfig
+#    image: flatconfig-service-image
+#    expose:
+#      - ${FLAT_CONFIG_PORT:-8081}
+#    ports:
+#      - ${FLAT_CONFIG_PORT:-8081}:${FLAT_CONFIG_PORT:-8081}
+#    depends_on:
+#      - flatconfig-db
+#    networks:
+#      backend-network:
+#        ipv4_address: ${FLAT_CONFIG_IP}
 
   flatconfig-db:
     image: postgres
@@ -28,27 +28,29 @@ services:
       - ${FLAT_CONFIG_DB_PORT:-5431}
     ports:
       - ${FLAT_CONFIG_DB_PORT:-5431}:${FLAT_CONFIG_DB_PORT:-5431}
+#    volumes:
+#      - ./init_flatconfig.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       POSTGRES_USER: ${FLAT_CONFIG_DB_USERNAME:-pguser}
       POSTGRES_PASSWORD: ${FLAT_CONFIG_DB_PASSWORD:-pgpass}
       POSTGRES_DB: ${FLAT_CONFIG_DB_NAME:-pgdb}
-    networks:
-      backend-network:
-        ipv4_address: ${FLAT_CONFIG_DB_IP}
+#    networks:
+#      backend-network:
+#        ipv4_address: ${FLAT_CONFIG_DB_IP}
 
-  costservice-db:
-    image: postgres
-    restart: always
-    command: -p ${COST_SERVICE_DB_PORT:-5432}
-    ports:
-      - ${COST_SERVICE_DB_PORT:-5432}:${COST_SERVICE_DB_PORT:-5432}
-    environment:
-      POSTGRES_USER: ${COST_SERVICE_DB_USERNAME:-pguser}
-      POSTGRES_PASSWORD: ${COST_SERVICE_DB_PASSWORD:-pgpass}
-      POSTGRES_DB: ${COST_SERVICE_DB_NAME:-pgdb}
-    networks:
-      backend-network:
-        ipv4_address: ${COST_SERVICE_DB_IP}
+#  costservice-db:
+#    image: postgres
+#    restart: always
+#    command: -p ${COST_SERVICE_DB_PORT:-5432}
+#    ports:
+#      - ${COST_SERVICE_DB_PORT:-5432}:${COST_SERVICE_DB_PORT:-5432}
+#    environment:
+#      POSTGRES_USER: ${COST_SERVICE_DB_USERNAME:-pguser}
+#      POSTGRES_PASSWORD: ${COST_SERVICE_DB_PASSWORD:-pgpass}
+#      POSTGRES_DB: ${COST_SERVICE_DB_NAME:-pgdb}
+#    networks:
+#      backend-network:
+#        ipv4_address: ${COST_SERVICE_DB_IP}
 
   zookeeper:
     image: confluentinc/cp-zookeeper:5.5.0
@@ -110,8 +112,8 @@ services:
       KAFKA_BROKER_ID: ignored
       KAFKA_ZOOKEEPER_CONNECT: ignored
 
-networks:
-  backend-network:
-    ipam:
-      config:
-        - subnet: ${SUBNET}
+#networks:
+#  backend-network:
+#    ipam:
+#      config:
+#        - subnet: ${SUBNET}

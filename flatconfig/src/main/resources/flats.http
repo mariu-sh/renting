@@ -1,0 +1,32 @@
+GET http://{{hostAndApi}}/flat
+Content-Type: application/json
+
+###
+POST http://{{hostAndApi}}/flat
+Content-Type: application/json
+
+{
+"totalSurface": 135.53
+}
+
+###
+DELETE http://{{hostAndApi}}/flat
+Content-Type: application/json
+
+{
+  "flatId": "7e9b6f7a-a6f4-4504-8da0-08e79ffceff1"
+}
+
+###
+GET http://{{hostAndApi}}/room
+Content-Type: application/json
+
+###
+POST http://{{hostAndApi}}/room
+Content-Type: application/json
+
+
+{
+  "surface": 25.67,
+  "flatId": "7e9b6f7a-a6f4-4504-8da0-08e79ffceff1"
+}

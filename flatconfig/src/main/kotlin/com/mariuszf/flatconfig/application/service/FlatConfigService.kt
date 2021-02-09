@@ -19,6 +19,7 @@ class FlatConfigService(
     val flatConfigInfoSync: FlatConfigInfoSync
 ) : ConfigureFlatUseCase {
 
+    @Transactional
     override fun createFlat(totalSurface: Double): Flat {
         val flat: Flat = flatStorage.createFlat(totalSurface)
         flatConfigInfoSync.sendCreateCommand(flat)
@@ -72,6 +73,7 @@ class FlatConfigService(
         } catch (e: RoomNotFoundInStorageException) { throw RoomNotFoundException(e.message) }
     }
 
+    @Transactional
     override fun deleteRoom(roomId: UUID) =
         try {
             roomStorage.deleteRoom(getRoom(roomId).id)
